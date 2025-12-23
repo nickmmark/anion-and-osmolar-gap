@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Anion & Osmolar Gap Calculator</title>
+
+  <style>
+    :root{
+      --red:#d62828;
+      --red-dark:#b81f1f;
+      --bg:#f6f7fb;
+      --card:#ffffff;
+      --text:#111827;
+      --muted:#6b7280;
+      --border:#e5e7eb;
+      --shadow: 0 10px 25px rgba(0,0,0,0.06);
+      --radius: 16px;
+    }
+
+    *{ box-sizing:border-box; }
+
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .container{
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 22px 16px 42px;
+    }
+
+    .header{
+      background: linear-gradient(180deg, #ffffff 0%, #ffffff 60%, rgba(255,255,255,0) 100%);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 18px 14px;
+      box-shadow: var(--shadow);
+      margin-bottom: 16px;
+    }
+
+    h1{
+      margin: 0 0 6px 0;
+      font-size: 26px;
+      letter-spacing: -0.02em;
+    }
+
+    .subtitle{
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.35;
+    }
+
+    .toolbar{
+      display:flex;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:space-between;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .pill-group{
+      display:flex;
+      gap: 10px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+
+    .pill{
+      border: 2px solid var(--red);
+      background: #fff;
+      color: var(--red);
+      padding: 10px 14px;
+      border-radius: 999px;
+      font-weight: 700;
+      cursor: pointer;
+      user-select:none;
+      font-size: 14px;
+      transition: all 0.15s ease;
+    }
+
+    .pill:hover{ transform: translateY(-1px); }
+
+    .pill.active{
+      background: var(--red);
+      color:#fff;
+      box-shadow: 0 8px 18px rgba(214,40,40,0.25);
+    }
+
+    .btn{
+      border: none;
+      background: var(--red);
+      color:#fff;
+      padding: 10px 14px;
+      border-radius: 12px;
+      font-weight: 800;
+      cursor:pointer;
+      font-size: 14px;
+      transition: all 0.15s ease;
+    }
+    .btn:hover{ background: var(--red-dark); transform: translateY(-1px); }
+    .btn.secondary{
+      background:#fff;
+      color: var(--red);
+      border: 2px solid var(--red);
+    }
+    .btn.secondary:hover{
+      background:#fff3f3;
+      transform: translateY(-1px);
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
+
+    @media (min-width: 920px){
+      .grid{
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .card{
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 16px;
+    }
+
+    .card-title{
+      margin: 0 0 10px 0;
+      font-size: 18px;
+      letter-spacing: -0.01em;
+    }
+
+    .section-label{
+      margin: 14px 0 6px;
+      color: var(--muted);
+      font-weight: 800;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+
+    .field{
+      display:flex;
+      align-items:center;
+      gap: 10px;
+      margin: 10px 0;
+    }
+
+    .field label{
+      flex: 1.1;
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .input-wrap{
+      flex: 1.4;
+      display:flex;
+      align-items:stretch;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow:hidden;
+      background:#fff;
+    }
+
+    .input-wrap input{
+      width:100%;
+      border:none;
+      outline:none;
+      padding: 12px 12px;
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .unit-suffix{
+      display:flex;
+      align-items:center;
+      padding: 0 10px;
+      border-left: 1px solid var(--border);
+      color: var(--muted);
+      font-weight: 800;
+      font-size: 13px;
+      background:#fafafa;
+      white-space:nowrap;
+    }
+
+    .help{
+      margin-top: 6px;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.35;
+    }
+
+    .divider{
+      height:1px;
+      background: var(--border);
+      margin: 12px 0;
+    }
+
+    .results-grid{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    @media (min-width: 520px){
+      .results-grid{ grid-template-columns: 1fr 1fr; }
+    }
+
+    .result-tile{
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px;
+      background:#fff;
+    }
+
+    .result-label{
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      margin-bottom: 6px;
+    }
+
+    .result-value{
+      font-size: 28px;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+    }
+
+    .result-units{
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 800;
+      margin-top: 2px;
+    }
+
+    .flag{
+      margin-top: 8px;
+      display:inline-block;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-weight: 900;
+      font-size: 12px;
+      letter-spacing: .02em;
+      border: 1px solid var(--border);
+      background:#f9fafb;
+      color: var(--text);
+    }
+
+    .flag.green{ background:#ecfdf5; border-color:#bbf7d0; color:#065f46; }
+    .flag.yellow{ background:#fffbeb; border-color:#fde68a; color:#92400e; }
+    .flag.orange{ background:#fff7ed; border-color:#fdba74; color:#9a3412; }
+    .flag.red{ background:#fef2f2; border-color:#fecaca; color:#991b1b; }
+    .flag.gray{ background:#f3f4f6; border-color:#e5e7eb; color:#374151; }
+
+    .foot{
+      margin-top: 10px;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    .mono{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 12px;
+    }
+
+    /* Added: footer attribution */
+    .attribution{
+      margin-top: 18px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+    .attribution a{
+      color: var(--muted);
+      text-decoration: none;
+      border-bottom: 1px dotted var(--border);
+    }
+    .attribution a:hover{
+      color: var(--text);
+      border-bottom-color: var(--text);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+
+    <div class="header">
+      <h1>Anion Gap + Osmolality + Osmolar Gap</h1>
+      <p class="subtitle">
+        Calculator with US (conventional) and SI (European) units. Units are shown beside each input. 
+      </p>
+
+      <div class="toolbar">
+        <div class="pill-group" aria-label="Unit mode">
+          <button class="pill active" id="btnUS" type="button">US / Conventional</button>
+          <button class="pill" id="btnSI" type="button">SI / European</button>
+        </div>
+
+        <div class="pill-group">
+          <button class="btn secondary" id="btnClear" type="button">Clear</button>
+          <button class="btn" id="btnCalculate" type="button">Calculate</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid">
+
+      <!-- INPUTS -->
+      <div class="card">
+        <div class="card-title">Inputs</div>
+
+        <div class="section-label">Electrolytes</div>
+
+        <div class="field">
+          <label for="na">Sodium (Na)</label>
+          <div class="input-wrap">
+            <input id="na" type="number" step="any" inputmode="decimal" placeholder="e.g. 140">
+            <div class="unit-suffix" id="unitNa">mEq/L</div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="cl">Chloride (Cl)</label>
+          <div class="input-wrap">
+            <input id="cl" type="number" step="any" inputmode="decimal" placeholder="e.g. 105">
+            <div class="unit-suffix" id="unitCl">mEq/L</div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="hco3">Bicarbonate (HCO₃ / CO₂)</label>
+          <div class="input-wrap">
+            <input id="hco3" type="number" step="any" inputmode="decimal" placeholder="e.g. 24">
+            <div class="unit-suffix" id="unitHco3">mEq/L</div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="albumin">Albumin (optional)</label>
+          <div class="input-wrap">
+            <input id="albumin" type="number" step="any" inputmode="decimal" placeholder="e.g. 4.0">
+            <div class="unit-suffix" id="unitAlbumin">g/dL</div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="section-label">Osmolality</div>
+
+        <div class="field">
+          <label for="glucose">Glucose</label>
+          <div class="input-wrap">
+            <input id="glucose" type="number" step="any" inputmode="decimal" placeholder="e.g. 100">
+            <div class="unit-suffix" id="unitGlucose">mg/dL</div>
+          </div>
+        </div>
+
+        <div class="field" id="rowBUN">
+          <label for="bun">BUN</label>
+          <div class="input-wrap">
+            <input id="bun" type="number" step="any" inputmode="decimal" placeholder="e.g. 14">
+            <div class="unit-suffix" id="unitBUN">mg/dL</div>
+          </div>
+        </div>
+
+        <div class="field" id="rowUrea" style="display:none;">
+          <label for="urea">Urea</label>
+          <div class="input-wrap">
+            <input id="urea" type="number" step="any" inputmode="decimal" placeholder="e.g. 5">
+            <div class="unit-suffix" id="unitUrea">mmol/L</div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="ethanol">Ethanol (optional)</label>
+          <div class="input-wrap">
+            <input id="ethanol" type="number" step="any" inputmode="decimal" placeholder="e.g. 0">
+            <div class="unit-suffix" id="unitEthanol">mg/dL</div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="measuredOsm">Measured Osmolality</label>
+          <div class="input-wrap">
+            <input id="measuredOsm" type="number" step="any" inputmode="decimal" placeholder="e.g. 290">
+            <div class="unit-suffix">mOsm/kg</div>
+          </div>
+        </div>
+
+        <div class="help">
+          <span class="mono">AG = Na − (Cl + HCO₃)</span><br/>
+          US osmolality uses: <span class="mono">2×Na + glucose/18 + BUN/2.8 (+ ethanol/3.7)</span><br/>
+          SI osmolality uses: <span class="mono">2×Na + glucose + urea (+ ethanol)</span>
+        </div>
+      </div>
+
+      <!-- OUTPUTS -->
+      <div class="card">
+        <div class="card-title">Results</div>
+
+        <div class="results-grid">
+          <div class="result-tile">
+            <div class="result-label">Anion Gap</div>
+            <div class="result-value" id="outAG">—</div>
+            <div class="result-units" id="outAGUnits">mEq/L</div>
+            <div class="flag gray" id="flagAG">Need Na, Cl, HCO₃</div>
+          </div>
+
+          <div class="result-tile">
+            <div class="result-label">Corrected Anion Gap</div>
+            <div class="result-value" id="outAGcorr">—</div>
+            <div class="result-units" id="outAGcorrUnits">mEq/L</div>
+            <div class="flag gray" id="flagAGcorr">Albumin optional</div>
+          </div>
+
+          <div class="result-tile">
+            <div class="result-label">Calculated Osmolality</div>
+            <div class="result-value" id="outOsmCalc">—</div>
+            <div class="result-units">mOsm/kg</div>
+            <div class="flag gray" id="flagOsmCalc">Need Na, glucose, BUN/urea</div>
+          </div>
+
+          <div class="result-tile">
+            <div class="result-label">Osmolar Gap</div>
+            <div class="result-value" id="outOsmGap">—</div>
+            <div class="result-units">mOsm/kg</div>
+            <div class="flag gray" id="flagOsmGap">Need measured osmolality</div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="foot" id="noteArea"></div>
+      </div>
+
+    </div>
+
+    <!-- Added: attribution at bottom -->
+    <div class="attribution">
+      created by Nick Mark <a href="https://x.com/nickmmark" target="_blank" rel="noopener noreferrer">@nickmmark</a>
+    </div>
+
+  </div>
+
+<script>
+/* =========================================================
+   State
+========================================================= */
+let unitMode = "US"; // "US" or "SI"
+
+/* =========================================================
+   DOM helpers
+========================================================= */
+function $(id){ return document.getElementById(id); }
+
+function parseNum(id){
+  const v = $(id).value;
+  if (v === "" || v === null || typeof v === "undefined") return null;
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;
+}
+
+function setText(id, txt){ $(id).textContent = txt; }
+
+function roundTo(x, d=1){
+  if (x === null || !Number.isFinite(x)) return "—";
+  const p = Math.pow(10,d);
+  return String(Math.round(x*p)/p).includes(".") ? (Math.round(x*p)/p).toFixed(d) : (Math.round(x*p)/p).toFixed(d);
+}
+
+function setFlag(elId, text, color){
+  const el = $(elId);
+  el.className = "flag " + (color || "gray");
+  el.textContent = text;
+}
+
+/* =========================================================
+   Unit display + mode switching
+========================================================= */
+function applyUnitModeUI(){
+  // Electrolytes are effectively same numeric (mEq/L vs mmol/L for Na/Cl/HCO3), but we still show the label.
+  if (unitMode === "US"){
+    setText("unitNa","mEq/L");
+    setText("unitCl","mEq/L");
+    setText("unitHco3","mEq/L");
+    setText("unitAlbumin","g/dL");
+    setText("unitGlucose","mg/dL");
+    setText("unitBUN","mg/dL");
+    setText("unitEthanol","mg/dL");
+
+    $("rowBUN").style.display = "flex";
+    $("rowUrea").style.display = "none";
+
+    setText("outAGUnits","mEq/L");
+    setText("outAGcorrUnits","mEq/L");
+  } else {
+    setText("unitNa","mmol/L");
+    setText("unitCl","mmol/L");
+    setText("unitHco3","mmol/L");
+    setText("unitAlbumin","g/L");
+    setText("unitGlucose","mmol/L");
+    setText("unitUrea","mmol/L");
+    setText("unitEthanol","mmol/L");
+
+    $("rowBUN").style.display = "none";
+    $("rowUrea").style.display = "flex";
+
+    setText("outAGUnits","mmol/L");
+    setText("outAGcorrUnits","mmol/L");
+  }
+}
+
+/* =========================================================
+   Normalization
+   Normalize to:
+     Na/Cl/HCO3: mmol/L (numerically same as mEq/L here)
+     Glucose: mmol/L
+     Urea: mmol/L (not BUN)
+     Albumin: g/dL
+     Ethanol: mmol/L
+     Measured osmolality: mOsm/kg
+========================================================= */
+function normalizeInputs(){
+  const na = parseNum("na");
+  const cl = parseNum("cl");
+  const hco3 = parseNum("hco3");
+  const measuredOsm = parseNum("measuredOsm");
+
+  // Albumin: US=g/dL, SI=g/L -> convert to g/dL
+  const albuminRaw = parseNum("albumin");
+  const albumin_gdL = (albuminRaw === null) ? null : (unitMode === "US" ? albuminRaw : albuminRaw / 10.0);
+
+  // Glucose: US mg/dL -> mmol/L via /18, SI already mmol/L
+  const glucoseRaw = parseNum("glucose");
+  const glucose_mmolL = (glucoseRaw === null) ? null : (unitMode === "US" ? glucoseRaw / 18.0 : glucoseRaw);
+
+  // Urea: US uses BUN mg/dL -> urea mmol/L via /2.8 ; SI directly urea mmol/L
+  let urea_mmolL = null;
+  if (unitMode === "US"){
+    const bun = parseNum("bun");
+    urea_mmolL = (bun === null) ? null : (bun / 2.8);
+  } else {
+    urea_mmolL = parseNum("urea");
+  }
+
+  // Ethanol:
+  // US mg/dL -> mmol/L via /4.6
+  // SI already mmol/L
+  const ethanolRaw = parseNum("ethanol");
+  const ethanol_mmolL = (ethanolRaw === null) ? null : (unitMode === "US" ? ethanolRaw / 4.6 : ethanolRaw);
+
+  return {
+    na, cl, hco3,
+    albumin_gdL,
+    glucose_mmolL,
+    urea_mmolL,
+    ethanol_mmolL,
+    measuredOsm
+  };
+}
+
+/* =========================================================
+   Calculations
+========================================================= */
+function calcAnionGap(n){
+  if (n.na === null || n.cl === null || n.hco3 === null) return null;
+  return n.na - (n.cl + n.hco3);
+}
+
+// Albumin correction (albumin in g/dL)
+function calcCorrectedAG(ag, albumin_gdL){
+  if (ag === null || albumin_gdL === null) return null;
+  return ag + 2.5 * (4.0 - albumin_gdL);
+}
+
+// Osmolality:
+// Use the classic US equation in US mode for transparency, but because we normalize into mmol/L,
+// we can compute SI-style directly:
+//   SI: Osm = 2*Na + glucose + urea (+ ethanol)
+// For US mode we also compute SI-style but it will match the classic US formula due to conversions.
+function calcOsmolality(n){
+  if (n.na === null || n.glucose_mmolL === null || n.urea_mmolL === null) return null;
+  let osm = 2*n.na + n.glucose_mmolL + n.urea_mmolL;
+  if (n.ethanol_mmolL !== null) osm += n.ethanol_mmolL;
+  return osm;
+}
+
+function calcOsmGap(measured, calculated){
+  if (measured === null || calculated === null) return null;
+  return measured - calculated;
+}
+
+/* =========================================================
+   Flags (defaults; can adjust)
+========================================================= */
+function flagAG(ag){
+  // Conservative default reference range for AG (no K): 8–12
+  if (ag === null) return {text:"Need Na, Cl, HCO₃", color:"gray"};
+  if (ag < 8) return {text:"Low anion gap", color:"yellow"};
+  if (ag <= 12) return {text:"Normal anion gap", color:"green"};
+  return {text:"High anion gap", color:"red"};
+}
+
+function flagAGcorr(agCorr, albuminProvided){
+  if (!albuminProvided) return {text:"Albumin not provided (no correction)", color:"gray"};
+  if (agCorr === null) return {text:"Need albumin + electrolytes", color:"gray"};
+  if (agCorr < 8) return {text:"Low corrected AG", color:"yellow"};
+  if (agCorr <= 12) return {text:"Normal corrected AG", color:"green"};
+  return {text:"High corrected AG", color:"red"};
+}
+
+function flagOsmGap(gap){
+  // Common practical cutoffs:
+  // <10 normal-ish, 10–19 mild, 20–29 concerning, >=30 strongly concerning
+  if (gap === null) return {text:"Need measured osmolality + calculated osmolality", color:"gray"};
+  if (gap < 10) return {text:"Osm gap < 10 (normal)", color:"green"};
+  if (gap < 20) return {text:"Osm gap 10–19 (mildly increased)", color:"yellow"};
+  if (gap < 30) return {text:"Osm gap 20–29 (possible unmeasured osm)", color:"orange"};
+  return {text:"Osm gap ≥ 30 (likely unmeasured osm present)", color:"red"};
+}
+
+function flagOsmCalc(osm){
+  if (osm === null) return {text:"Need Na, glucose, BUN/urea", color:"gray"};
+  // We won’t over-interpret osmolality yet; just “computed”.
+  return {text:"Calculated", color:"green"};
+}
+
+/* =========================================================
+   Render
+========================================================= */
+function calculateAndRender(){
+  const n = normalizeInputs();
+
+  const ag = calcAnionGap(n);
+  const agCorr = calcCorrectedAG(ag, n.albumin_gdL);
+  const osmCalc = calcOsmolality(n);
+  const osmGap = calcOsmGap(n.measuredOsm, osmCalc);
+
+  setText("outAG", roundTo(ag, 1));
+  setText("outAGcorr", roundTo(agCorr, 1));
+  setText("outOsmCalc", roundTo(osmCalc, 0));
+  setText("outOsmGap", roundTo(osmGap, 0));
+
+  const fAG = flagAG(ag);
+  setFlag("flagAG", fAG.text, fAG.color);
+
+  const fAGc = flagAGcorr(agCorr, n.albumin_gdL !== null);
+  setFlag("flagAGcorr", fAGc.text, fAGc.color);
+
+  const fOsm = flagOsmCalc(osmCalc);
+  setFlag("flagOsmCalc", fOsm.text, fOsm.color);
+
+  const fGap = flagOsmGap(osmGap);
+  setFlag("flagOsmGap", (n.measuredOsm === null ? "Need measured osmolality" : fGap.text), (n.measuredOsm === null ? "gray" : fGap.color));
+
+  // Notes block (brief + practical)
+  const notes = [];
+  if (n.albumin_gdL === null){
+    notes.push("• Albumin not entered → corrected AG not computed.");
+  } else {
+    notes.push(`• Albumin used for correction: ${roundTo(n.albumin_gdL,2)} g/dL (AGcorr = AG + 2.5×(4−Alb)).`);
+  }
+
+  if (n.ethanol_mmolL !== null){
+    notes.push(`• Ethanol included in osmolality calculation.`);
+  } else {
+    notes.push("• Ethanol not included (leave blank if unknown).");
+  }
+
+  if (unitMode === "US"){
+    notes.push("• Conversions: glucose mmol/L = mg/dL ÷ 18; urea mmol/L = BUN mg/dL ÷ 2.8; ethanol mmol/L = mg/dL ÷ 4.6.");
+  } else {
+    notes.push("• SI mode uses glucose/urea/ethanol directly in mmol/L; albumin converted g/L → g/dL for corrected AG.");
+  }
+
+  setText("noteArea", notes.join("\n"));
+}
+
+/* =========================================================
+   Clear
+========================================================= */
+function clearAll(){
+  const inputs = ["na","cl","hco3","albumin","glucose","bun","urea","ethanol","measuredOsm"];
+  inputs.forEach(id => { if ($(id)) $(id).value = ""; });
+  calculateAndRender();
+}
+
+/* =========================================================
+   Events
+========================================================= */
+function bindLive(){
+  const ids = ["na","cl","hco3","albumin","glucose","bun","urea","ethanol","measuredOsm"];
+  ids.forEach(id=>{
+    const el = $(id);
+    if (!el) return;
+    el.addEventListener("input", ()=>calculateAndRender());
+  });
+}
+
+$("btnUS").addEventListener("click", ()=>{
+  unitMode = "US";
+  $("btnUS").classList.add("active");
+  $("btnSI").classList.remove("active");
+  applyUnitModeUI();
+  clearAll(); // prevent mixed-unit carryover
+});
+
+$("btnSI").addEventListener("click", ()=>{
+  unitMode = "SI";
+  $("btnSI").classList.add("active");
+  $("btnUS").classList.remove("active");
+  applyUnitModeUI();
+  clearAll(); // prevent mixed-unit carryover
+});
+
+$("btnClear").addEventListener("click", clearAll);
+$("btnCalculate").addEventListener("click", calculateAndRender);
+
+/* Init */
+applyUnitModeUI();
+bindLive();
+calculateAndRender();
+</script>
+</body>
+</html>
