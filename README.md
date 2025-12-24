@@ -3,9 +3,7 @@ web calculator for anion gap and osmolar gap
 
 ![](https://github.com/nickmmark/anion-and-osmolar-gap/blob/main/osmolar-gap_demo.gif)
 
-try it [here](https://nickmmark.github.io/anion-and-osmolar-gap/)
-
-
+try it yourself [here](https://nickmmark.github.io/anion-and-osmolar-gap/)
 
 
 ### Calculations
@@ -23,6 +21,14 @@ Calculated Serum Osmolality (US Units)
 ```math
 Osm_{calc} = 2 \times Na + \frac{Glucose}{18} + \frac{BUN}{2.8} + \frac{Ethanol}{3.7}
 ```
+
+### Functions
+* normalizeInputs() - Converts all user inputs into a consistent internal unit system.
+* calcAnionGap() - Computes raw anion gap.
+* calcCorrectedAG() - Applies albumin correction.
+* calcOsmolality() - Computes calculated serum osmolality.
+* calcOsmGap() - Computes osmolar gap.
+* calculateAndRender() - Central render loop that updates outputs and flags on input changes.
 
 ### References
 Glasser L, Sternglanz PD, Combie J, Robinson A. [Serum osmolality and its applicability to drug overdose](https://pubmed.ncbi.nlm.nih.gov/4751712/). Am J Clin Pathol. 1973
