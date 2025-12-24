@@ -1,7 +1,11 @@
 # anion-and-osmolar-gap
 web calculator for anion gap and osmolar gap
 
+![](https://github.com/nickmmark/anion-and-osmolar-gap/blob/main/osmolar-gap_demo.gif)
+
 try it [here](https://nickmmark.github.io/anion-and-osmolar-gap/)
+
+
 
 
 ### Calculations
