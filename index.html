@@ -270,6 +270,7 @@
       font-size: 12px;
       color: var(--muted);
       line-height: 1.4;
+      white-space: pre-line;
     }
 
     .mono{
@@ -294,6 +295,92 @@
       color: var(--text);
       border-bottom-color: var(--text);
     }
+
+    /* Added: DDx panel styling */
+    .ddx-panel{
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px;
+      background:#fff;
+      margin-top: 12px;
+      display:none; /* toggled by JS */
+    }
+
+    .ddx-title{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .ddx-title .left{
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+
+    .ddx-chip{
+      display:inline-block;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-weight: 900;
+      font-size: 12px;
+      letter-spacing: .02em;
+      border: 1px solid var(--border);
+      background:#f3f4f6;
+      color:#374151;
+      white-space:nowrap;
+    }
+    .ddx-chip.red{ background:#fef2f2; border-color:#fecaca; color:#991b1b; }
+    .ddx-chip.orange{ background:#fff7ed; border-color:#fdba74; color:#9a3412; }
+    .ddx-chip.yellow{ background:#fffbeb; border-color:#fde68a; color:#92400e; }
+
+    .ddx-grid{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+    @media (min-width: 520px){
+      .ddx-grid{ grid-template-columns: 1fr 1fr; }
+    }
+
+    .ddx-box{
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px;
+      background:#fafafa;
+    }
+
+    .ddx-box .hdr{
+      font-weight: 900;
+      font-size: 12px;
+      color: var(--text);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+    }
+
+    .ddx-box ul{
+      margin: 0;
+      padding-left: 18px;
+      color: var(--text);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .ddx-box li{
+      margin: 4px 0;
+    }
+
+    .ddx-foot{
+      margin-top: 8px;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.35;
+    }
   </style>
 </head>
 
@@ -303,7 +390,7 @@
     <div class="header">
       <h1>Anion Gap + Osmolality + Osmolar Gap</h1>
       <p class="subtitle">
-        Calculator with US (conventional) and SI (European) units. Units are shown beside each input. 
+        Calculator with US (conventional) and SI (European) units. Units are shown beside each input.
       </p>
 
       <div class="toolbar">
@@ -447,6 +534,20 @@
         <div class="divider"></div>
 
         <div class="foot" id="noteArea"></div>
+
+        <!-- Added: Differential diagnosis panel (auto-shown when indicated) -->
+        <div class="ddx-panel" id="ddxPanel" aria-live="polite">
+          <div class="ddx-title">
+            <div class="left">Differential diagnosis</div>
+            <div class="ddx-chip" id="ddxChip">—</div>
+          </div>
+
+          <div class="ddx-grid" id="ddxGrid">
+            <!-- Filled by JS -->
+          </div>
+
+          <div class="ddx-foot" id="ddxFoot"></div>
+        </div>
       </div>
 
     </div>
@@ -478,6 +579,8 @@ function parseNum(id){
 
 function setText(id, txt){ $(id).textContent = txt; }
 
+function setHTML(id, html){ $(id).innerHTML = html; }
+
 function roundTo(x, d=1){
   if (x === null || !Number.isFinite(x)) return "—";
   const p = Math.pow(10,d);
@@ -489,6 +592,9 @@ function setFlag(elId, text, color){
   el.className = "flag " + (color || "gray");
   el.textContent = text;
 }
+
+function show(elId){ $(elId).style.display = "block"; }
+function hide(elId){ $(elId).style.display = "none"; }
 
 /* =========================================================
    Unit display + mode switching
@@ -590,10 +696,8 @@ function calcCorrectedAG(ag, albumin_gdL){
 }
 
 // Osmolality:
-// Use the classic US equation in US mode for transparency, but because we normalize into mmol/L,
-// we can compute SI-style directly:
 //   SI: Osm = 2*Na + glucose + urea (+ ethanol)
-// For US mode we also compute SI-style but it will match the classic US formula due to conversions.
+// With normalization this works for both modes.
 function calcOsmolality(n){
   if (n.na === null || n.glucose_mmolL === null || n.urea_mmolL === null) return null;
   let osm = 2*n.na + n.glucose_mmolL + n.urea_mmolL;
@@ -637,8 +741,128 @@ function flagOsmGap(gap){
 
 function flagOsmCalc(osm){
   if (osm === null) return {text:"Need Na, glucose, BUN/urea", color:"gray"};
-  // We won’t over-interpret osmolality yet; just “computed”.
   return {text:"Calculated", color:"green"};
+}
+
+/* =========================================================
+   Differential diagnosis helpers
+========================================================= */
+function buildHighAGDDx(){
+  // GOLDMARK: Glycols, Oxoproline, L-lactate, D-lactate, Methanol, Aspirin, Renal failure, Ketoacidosis
+  const left = `
+    <div class="ddx-box">
+      <div class="hdr">High anion gap (GOLDMARK)</div>
+      <ul>
+        <li><b>G</b>lycols (ethylene glycol, propylene glycol)</li>
+        <li><b>O</b>xoproline (5-oxoproline / pyroglutamic acidosis)</li>
+        <li><b>L</b>-lactate</li>
+        <li><b>D</b>-lactate</li>
+      </ul>
+    </div>
+  `;
+  const right = `
+    <div class="ddx-box">
+      <div class="hdr">High anion gap (GOLDMARK)</div>
+      <ul>
+        <li><b>M</b>ethanol</li>
+        <li><b>A</b>spirin (salicylates)</li>
+        <li><b>R</b>enal failure (uremia)</li>
+        <li><b>K</b>etoacidosis (DKA, alcoholic, starvation)</li>
+      </ul>
+    </div>
+  `;
+  return left + right;
+}
+
+function buildOsmGapDDx(osmGap){
+  // Practical osm gap differential (especially when elevated):
+  // toxic alcohols (methanol, ethylene glycol, isopropanol), propylene glycol, mannitol/contrast, DKA/ketosis, renal failure, hyperlipidemia/proteinemia (lab artifact)
+  // We'll tailor emphasis chip based on severity.
+  const left = `
+    <div class="ddx-box">
+      <div class="hdr">Elevated osmolar gap</div>
+      <ul>
+        <li>Toxic alcohols: <b>methanol</b>, <b>ethylene glycol</b>, <b>isopropanol</b></li>
+        <li><b>Propylene glycol</b> (IV meds/solvents)</li>
+        <li><b>Mannitol</b> / hyperosmolar therapies</li>
+      </ul>
+    </div>
+  `;
+  const right = `
+    <div class="ddx-box">
+      <div class="hdr">Other causes / caveats</div>
+      <ul>
+        <li>Recent <b>iodinated contrast</b></li>
+        <li><b>DKA/ketosis</b> (osm gap can be mildly ↑)</li>
+        <li>Lab artifact: hyperlipidemia / hyperproteinemia; timing after ingestion</li>
+      </ul>
+    </div>
+  `;
+
+  let foot = "Interpret osmolar gap in clinical context; early toxic alcohol ingestion may elevate osm gap before anion gap rises.";
+  if (osmGap !== null && osmGap >= 20){
+    foot = "Higher osmolar gaps raise concern for unmeasured osmoles (e.g., toxic alcohols). Correlate with acid-base status and clinical context.";
+  }
+  return { html: left + right, foot };
+}
+
+function updateDDxPanel(ag, osmGap){
+  const panel = $("ddxPanel");
+  const chip = $("ddxChip");
+  const grid = $("ddxGrid");
+  const foot = $("ddxFoot");
+
+  // thresholds (easy to tweak later)
+  const highAG = (ag !== null && ag > 12);
+  const highOsmGap = (osmGap !== null && osmGap >= 10);
+
+  if (!highAG && !highOsmGap){
+    hide("ddxPanel");
+    chip.className = "ddx-chip";
+    chip.textContent = "—";
+    grid.innerHTML = "";
+    foot.textContent = "";
+    return;
+  }
+
+  // Build combined ddx if both triggered
+  let blocks = "";
+  let chipText = "";
+  let chipClass = "ddx-chip";
+
+  if (highAG && highOsmGap){
+    chipText = "High AG + Elevated Osm Gap";
+    chipClass = "ddx-chip red";
+    blocks += buildHighAGDDx();
+    const og = buildOsmGapDDx(osmGap);
+    blocks += og.html;
+    foot.textContent = og.foot;
+  } else if (highAG){
+    chipText = "High Anion Gap";
+    chipClass = "ddx-chip red";
+    blocks += buildHighAGDDx();
+    foot.textContent = "High AG differential shown (GOLDMARK). Consider correlating with lactate, ketones, renal function, and toxic alcohol evaluation as appropriate.";
+  } else {
+    // only osm gap
+    if (osmGap >= 30){
+      chipText = "Osm Gap ≥ 30";
+      chipClass = "ddx-chip red";
+    } else if (osmGap >= 20){
+      chipText = "Osm Gap 20–29";
+      chipClass = "ddx-chip orange";
+    } else {
+      chipText = "Osm Gap 10–19";
+      chipClass = "ddx-chip yellow";
+    }
+    const og = buildOsmGapDDx(osmGap);
+    blocks += og.html;
+    foot.textContent = og.foot;
+  }
+
+  chip.className = chipClass;
+  chip.textContent = chipText;
+  setHTML("ddxGrid", blocks);
+  show("ddxPanel");
 }
 
 /* =========================================================
@@ -690,6 +914,9 @@ function calculateAndRender(){
   }
 
   setText("noteArea", notes.join("\n"));
+
+  // Differential diagnosis panel (auto)
+  updateDDxPanel(ag, osmGap);
 }
 
 /* =========================================================
