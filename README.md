@@ -22,6 +22,20 @@ Calculated Serum Osmolality (US Units)
 Osm_{calc} = 2 \times Na + \frac{Glucose}{18} + \frac{BUN}{2.8} + \frac{Ethanol}{3.7}
 ```
 
+### Differential Diagnosis
+The app automatically displays the differential diagnosis.
+
+High anion gap:
+* Glycols (ethylene glycol, propylene glycol)
+* Oxoproline (APAP metabolite)
+* L-lactate
+* D-lactate
+* Methanol
+* Aspirin (salicylates)
+* Renal failure (uremia)
+* Ketoacidosis
+
+
 ### Functions
 * normalizeInputs() - Converts all user inputs into a consistent internal unit system.
 * calcAnionGap() - Computes raw anion gap.
